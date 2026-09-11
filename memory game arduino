@@ -1,0 +1,97 @@
+const int buttonPin1 = 13;  
+const int ledPin1 = 12;     
+const int buttonPin2 = 3;  
+const int ledPin2 =     4;     
+
+const int maxSequence = 20;
+int sequence[maxSequence];
+int level = 1;
+
+void setup() {
+  pinMode(ledPin1, OUTPUT);
+  pinMode(buttonPin1, INPUT_PULLUP);
+  pinMode(ledPin2, OUTPUT);
+  pinMode(buttonPin2, INPUT_PULLUP);
+  
+  randomSeed(analogRead(A0));
+}
+
+void loop() {
+  generateSequence();
+  playSequence();
+  
+  if (!getPlayerInput()) {
+    gameOver();
+    level = 1; // Reinicia o jogo se errar
+    delay(1000);
+  } else {
+    level++;
+    if (level > maxSequence) level = maxSequence;
+    delay(1000);
+  }
+}
+
+void generateSequence() {
+  for (int i = 0; i < level; i++) {
+    sequence[i] = random(1, 3); // 1 ou 2
+  }
+}
+
+void playSequence() {
+  delay(500);
+  for (int i = 0; i < level; i++) {
+    if (sequence[i] == 1) {
+      digitalWrite(ledPin1, HIGH);
+      delay(400);
+      digitalWrite(ledPin1, LOW);
+    } else {
+      digitalWrite(ledPin2, HIGH);
+      delay(400);
+      digitalWrite(ledPin2, LOW);
+    }
+    delay(200);
+  }
+}
+
+bool getPlayerInput() {
+  for (int i = 0; i < level; i++) {
+    int pressedButton = 0;
+    
+    // Aguarda o jogador pressionar um botão
+    while (pressedButton == 0) {
+      if (digitalRead(buttonPin1) == LOW) {
+        pressedButton = 1;
+        digitalWrite(ledPin1, HIGH);
+        delay(200);
+        digitalWrite(ledPin1, LOW);
+        while (digitalRead(buttonPin1) == LOW); // Espera soltar o botão 1
+        delay(50); // Debounce
+      }
+      if (digitalRead(buttonPin2) == LOW) {
+        pressedButton = 2;
+        digitalWrite(ledPin2, HIGH);
+        delay(200);
+        digitalWrite(ledPin2, LOW);
+        while (digitalRead(buttonPin2) == LOW); // Espera soltar o botão 2
+        delay(50); // Debounce
+      }
+    }
+    
+    // Confere se o botão apertado corresponde ao da sequência
+    if (pressedButton != sequence[i]) {
+      return false; 
+    }
+  }
+  return true; 
+}
+
+void gameOver() {
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(ledPin1, HIGH);
+    digitalWrite(ledPin2, HIGH);
+    delay(150);
+    digitalWrite(ledPin1, LOW);
+    digitalWrite(ledPin2, LOW);
+    delay(150);
+  }
+}
